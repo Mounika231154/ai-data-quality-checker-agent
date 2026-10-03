@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 from data_quality_checker import check_data_quality
 
-
 st.set_page_config(
     page_title="AI Data Quality Checker",
     page_icon="📊"
@@ -11,8 +10,7 @@ st.set_page_config(
 st.title("📊 AI Data Quality Checker Agent")
 
 st.write(
-    "Upload a CSV file and this agent will analyze "
-    "its data quality."
+    "Upload a CSV file and check its data quality automatically."
 )
 
 uploaded_file = st.file_uploader(
@@ -38,6 +36,41 @@ if uploaded_file is not None:
 
     with col2:
         st.metric("Columns", report["columns"])
+
+    with col3:
+        st.metric(
+            "Quality Score",
+            f"{report['quality_score']}%"
+        )
+
+    st.subheader("⚠️ Missing Values")
+
+    if report["missing_values"]:
+        st.json(report["missing_values"])
+    else:
+        st.success("No missing values found.")
+
+    st.subheader("🔁 Duplicate Rows")
+
+    if report["duplicate_rows"] > 0:
+        st.warning(
+            f"{report['duplicate_rows']} duplicate rows found."
+        )
+    else:
+        st.success("No duplicate rows found.")
+
+    st.subheader("💡 Recommendations")
+
+    if report["missing_values"]:
+        st.write("→ Fill or remove missing values.")
+
+    if report["duplicate_rows"] > 0:
+        st.write("→ Remove duplicate records.")
+
+    if not report["missing_values"] and report["duplicate_rows"] == 0:
+        st.success(
+            "Your dataset looks clean based on the checks performed."
+        )"])
 
     with col3:
         st.metric(

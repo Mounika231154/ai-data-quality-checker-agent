@@ -101,8 +101,8 @@ Recommendations:
 - Add AI-generated explanations
 - Export the quality report
 - Add more validation rules
-👨‍💻 Author
 
+👨‍💻 Author
 Meganath KM
 
 GitHub:

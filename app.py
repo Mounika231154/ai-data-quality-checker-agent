@@ -1,13 +1,19 @@
 import streamlit as st
-from agent import DataQualityAgent
+import pandas as pd
+from data_quality_checker import check_data_quality
+
 
 st.set_page_config(
     page_title="AI Data Quality Checker",
-    page_icon="🧹"
+    page_icon="📊"
 )
 
-st.title("🧹 AI Data Quality Checker Agent")
-st.write("Upload a CSV file to analyze its data quality.")
+st.title("📊 AI Data Quality Checker Agent")
+
+st.write(
+    "Upload a CSV file and this agent will analyze "
+    "its data quality."
+)
 
 uploaded_file = st.file_uploader(
     "Upload your CSV file",
@@ -16,30 +22,57 @@ uploaded_file = st.file_uploader(
 
 if uploaded_file is not None:
 
-    st.success("File uploaded successfully!")
+    df = pd.read_csv(uploaded_file)
 
-    if st.button("🔍 Analyze Data"):
+    st.subheader("📋 Dataset Preview")
+    st.dataframe(df.head())
 
-        agent = DataQualityAgent()
-        result = agent.analyze(uploaded_file)
+    report = check_data_quality(df)
 
-        st.subheader("📊 Data Quality Report")
+    st.subheader("📊 Data Quality Report")
 
-        report = result["report"]
+    col1, col2, col3 = st.columns(3)
 
-        st.write("**Rows:**", report["Rows"])
-        st.write("**Columns:**", report["Columns"])
-        st.write("**Missing Values:**", report["Missing Values"])
-        st.write("**Duplicate Rows:**", report["Duplicate Rows"])
+    with col1:
+        st.metric("Rows", report["rows"])
 
-        st.subheader("⚠️ Issues Found")
+    with col2:
+        st.metric("Columns", report["columns"])
 
-        for issue in result["issues"]:
-            st.write("•", issue)
-    if total_cells > 0:
-        quality_score = max(
-            0,
-            round((1 - issue_count / total_cells) * 100, 2)
+    with col3:
+        st.metric(
+            "Quality Score",
+            f"{report['quality_score']}%"
+        )
+
+    st.subheader("⚠️ Missing Values")
+
+    if report["missing_values"]:
+        st.json(report["missing_values"])
+    else:
+        st.success("No missing values found.")
+
+    st.subheader("🔁 Duplicate Rows")
+
+    if report["duplicate_rows"] > 0:
+        st.warning(
+            f"{report['duplicate_rows']} duplicate rows found."
+        )
+    else:
+        st.success("No duplicate rows found.")
+
+    st.subheader("💡 Recommendations")
+
+    if report["missing_values"]:
+        st.write("→ Fill or remove missing values.")
+
+    if report["duplicate_rows"] > 0:
+        st.write("→ Remove duplicate records.")
+
+    if not report["missing_values"] and report["duplicate_rows"] == 0:
+        st.success(
+            "Your dataset looks clean based on the checks performed."
+        ) / total_cells) * 100, 2)
         )
     else:
         quality_score = 100

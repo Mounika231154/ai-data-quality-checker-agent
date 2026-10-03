@@ -1,38 +1,41 @@
 import streamlit as st
-import pandas as pd
+from agent import DataQualityAgent
 
-st.set_page_config(page_title="AI Data Quality Checker", page_icon="📊")
+st.set_page_config(
+    page_title="AI Data Quality Checker",
+    page_icon="🧹"
+)
 
-st.title("📊 AI Data Quality Checker Agent")
+st.title("🧹 AI Data Quality Checker Agent")
+st.write("Upload a CSV file to analyze its data quality.")
 
 uploaded_file = st.file_uploader(
-    "Upload CSV or Excel File",
-    type=["csv", "xlsx"]
+    "Upload your CSV file",
+    type=["csv"]
 )
 
 if uploaded_file is not None:
 
-    # Read file
-    if uploaded_file.name.endswith(".csv"):
-        df = pd.read_csv(uploaded_file)
-    else:
-        df = pd.read_excel(uploaded_file)
+    st.success("File uploaded successfully!")
 
-    st.subheader("Dataset Preview")
-    st.dataframe(df.head())
+    if st.button("🔍 Analyze Data"):
 
-    # Missing values
-    missing_values = df.isnull().sum().sum()
+        agent = DataQualityAgent()
+        result = agent.analyze(uploaded_file)
 
-    # Duplicate rows
-    duplicate_rows = df.duplicated().sum()
+        st.subheader("📊 Data Quality Report")
 
-    # Total cells
-    total_cells = df.shape[0] * df.shape[1]
+        report = result["report"]
 
-    # Quality score
-    issue_count = missing_values + duplicate_rows
+        st.write("**Rows:**", report["Rows"])
+        st.write("**Columns:**", report["Columns"])
+        st.write("**Missing Values:**", report["Missing Values"])
+        st.write("**Duplicate Rows:**", report["Duplicate Rows"])
 
+        st.subheader("⚠️ Issues Found")
+
+        for issue in result["issues"]:
+            st.write("•", issue)
     if total_cells > 0:
         quality_score = max(
             0,
